@@ -3,9 +3,18 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
-EXPORT_DIR = BASE_DIR / "exports"
+IS_VERCEL = os.environ.get("VERCEL") == "1"
+
+# Vercel serverless: only /tmp is writable; SQLite + exports go there.
+if IS_VERCEL:
+    DATA_DIR = Path("/tmp/safeguard-data")
+    EXPORT_DIR = Path("/tmp/safeguard-exports")
+else:
+    DATA_DIR = BASE_DIR / "data"
+    EXPORT_DIR = BASE_DIR / "exports"
+
 SAMPLE_IMPORT_DIR = BASE_DIR / "sample_imports"
+PUBLIC_STATIC_DIR = BASE_DIR / "public" / "static"
 DB_PATH = DATA_DIR / "safeguard.db"
 
 
@@ -17,5 +26,5 @@ class Config:
 
 
 def ensure_directories():
-    for folder in (DATA_DIR, EXPORT_DIR, SAMPLE_IMPORT_DIR):
+    for folder in (DATA_DIR, EXPORT_DIR, SAMPLE_IMPORT_DIR, PUBLIC_STATIC_DIR):
         folder.mkdir(parents=True, exist_ok=True)

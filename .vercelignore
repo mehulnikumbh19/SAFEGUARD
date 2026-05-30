@@ -1,0 +1,9 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+data/
+exports/*.csv
+exports/*.xlsx
+exports/*.md
+.git/

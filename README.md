@@ -39,25 +39,43 @@ Browser
   -> imports.py / exports.py / reports.py for CSV, Excel, and Markdown workflows
 ```
 
-## Deploy Online (Render — free tier)
+## Deploy Online (Vercel — recommended)
 
-SAFEGUARD is ready to host on [Render](https://render.com) from GitHub.
+SAFEGUARD uses [Vercel’s native Flask support](https://vercel.com/docs/frameworks/backend/flask). The entrypoint is `app:app` in `app.py`.
+
+### Deploy from GitHub (dashboard)
 
 1. Push the latest code to https://github.com/mehulnikumbh19/SAFEGUARD
-2. Sign in to Render with GitHub.
-3. Click **New +** → **Blueprint**.
-4. Connect the **SAFEGUARD** repository.
-5. Render reads `render.yaml` and creates the web service automatically.
-6. Wait for the build to finish (about 2–4 minutes).
-7. Open the live URL (for example `https://safeguard.onrender.com`).
+2. Sign in at https://vercel.com with GitHub.
+3. Click **Add New…** → **Project**.
+4. Import the **SAFEGUARD** repository.
+5. Leave defaults (Vercel detects Flask via `app.py` and `pyproject.toml`).
+6. Add an environment variable (recommended):
+   - `SECRET_KEY` = any long random string
+7. Click **Deploy** and wait for the build (~2–4 minutes).
+8. Open your production URL (for example `https://safeguard.vercel.app`).
 
-**Notes for hosted demo:**
+### Deploy with Vercel CLI
 
-- The free tier uses an ephemeral disk; SQLite data may reset when the service redeploys or sleeps. Sample seed data reloads automatically on startup when the database is empty.
-- First request after sleep can take 30–60 seconds (cold start).
-- Set `SECRET_KEY` in Render if you redeploy without the blueprint (Render can auto-generate it via `render.yaml`).
+```powershell
+cd safeguard
+npm i -g vercel
+vercel login
+vercel
+```
 
-**Health check:** `GET /health` returns `{"status": "ok", "service": "SAFEGUARD"}`.
+Follow prompts to link the project. Use `vercel --prod` for production.
+
+### Hosted demo notes
+
+- **SQLite** runs in `/tmp` on Vercel (writable in serverless). Data is ephemeral across cold starts; sample seed data reloads automatically when the database is empty.
+- **Static assets** (CSS/JS) are served from `public/static/` via the CDN.
+- **Excel/Markdown exports** write to `/tmp` and download in the browser as usual.
+- **Health check:** `GET /health` returns `{"status": "ok", "service": "SAFEGUARD"}`.
+
+## Deploy Online (Render — alternative)
+
+You can also deploy with [Render](https://render.com) using the included `render.yaml` Blueprint (see `render.yaml` in the repo).
 
 ## Screenshots
 

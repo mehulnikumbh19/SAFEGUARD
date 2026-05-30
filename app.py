@@ -16,7 +16,7 @@ from calculations import (
     flag_overdue_remediation,
     get_system_flags,
 )
-from config import Config, ensure_directories
+from config import BASE_DIR, Config, PUBLIC_STATIC_DIR, SAMPLE_IMPORT_DIR, ensure_directories
 from database import db, init_db
 from exports import export_systems_csv, export_workbook
 from imports import TEMPLATES, commit_import, preview_import
@@ -37,7 +37,11 @@ from seed_data import reset_database, seed_database
 
 def create_app():
     ensure_directories()
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        static_folder=str(PUBLIC_STATIC_DIR),
+        static_url_path="/static",
+    )
     app.config.from_object(Config)
     init_db(app)
 
@@ -279,7 +283,7 @@ def create_app():
 
     @app.route("/sample_imports/<path:filename>")
     def sample_import(filename):
-        return send_file(Path("sample_imports") / filename, as_attachment=True)
+        return send_file(SAMPLE_IMPORT_DIR / filename, as_attachment=True)
 
     @app.errorhandler(404)
     def not_found(error):
