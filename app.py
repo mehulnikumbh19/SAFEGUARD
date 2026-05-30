@@ -17,7 +17,7 @@ from calculations import (
     get_system_flags,
 )
 from config import BASE_DIR, Config, PUBLIC_STATIC_DIR, SAMPLE_IMPORT_DIR, ensure_directories
-from database import db, init_db
+from database import db
 from exports import export_systems_csv, export_workbook
 from imports import TEMPLATES, commit_import, preview_import
 from models import (
@@ -36,7 +36,12 @@ from seed_data import reset_database, seed_database
 
 
 def create_app():
-    ensure_directories()
+    try:
+        ensure_directories()
+    except OSError:
+        # Read-only filesystem on serverless build/analyze step; ignore.
+        pass
+
     app = Flask(
         __name__,
         template_folder=str(BASE_DIR / "templates"),
@@ -44,18 +49,19 @@ def create_app():
         static_url_path="/static",
     )
     app.config.from_object(Config)
-    init_db(app)
+    db.init_app(app)
 
     @app.before_request
-    def _lazy_seed():
-        if getattr(app, "_seed_attempted", False):
+    def _lazy_bootstrap():
+        if getattr(app, "_bootstrap_done", False):
             return
-        app._seed_attempted = True
+        app._bootstrap_done = True
         try:
+            db.create_all()
             if not System.query.first():
                 seed_database()
         except Exception:
-            app.logger.exception("SAFEGUARD seed failed on startup")
+            app.logger.exception("SAFEGUARD bootstrap (create_all/seed) failed")
 
     @app.route("/health")
     def health():

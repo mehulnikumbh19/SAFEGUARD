@@ -1,7 +1,5 @@
 from datetime import datetime
 
-import pandas as pd
-
 from calculations import calculate_risk_score
 from database import db
 from models import (
@@ -78,8 +76,13 @@ ENUM_VALIDATORS = {
 }
 
 
+def _isna(value):
+    # NaN is the only value not equal to itself; also treat None as missing.
+    return value is None or (isinstance(value, float) and value != value)
+
+
 def parse_date(value):
-    if pd.isna(value) or value == "":
+    if _isna(value) or value == "":
         return None
     if hasattr(value, "date"):
         return value.date()
@@ -102,7 +105,7 @@ def validate_headers(kind, df):
 def validate_row(kind, row):
     errors = []
     for field, allowed in ENUM_VALIDATORS.items():
-        if field in row and not pd.isna(row[field]) and str(row[field]).strip():
+        if field in row and not _isna(row[field]) and str(row[field]).strip():
             if str(row[field]).strip() not in allowed:
                 errors.append(f"{field} has invalid value '{row[field]}'")
     if kind in {"controls", "evidence", "observations"}:
@@ -115,6 +118,8 @@ def validate_row(kind, row):
 
 
 def preview_import(kind, file_storage):
+    import pandas as pd
+
     df = pd.read_csv(file_storage)
     missing, extra = validate_headers(kind, df)
     if missing:

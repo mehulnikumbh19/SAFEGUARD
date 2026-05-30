@@ -1,21 +1,18 @@
 from pathlib import Path
 
-import pandas as pd
-from openpyxl.styles import Alignment, Font, PatternFill
-from openpyxl.utils import get_column_letter
-
 from calculations import assign_risk_rating, compute_assessment_readiness_score, flag_overdue_remediation
 from config import EXPORT_DIR
 from models import Control, Evidence, Observation, PolicyMapping, Remediation, System
 
-
-HEADER_FILL = PatternFill("solid", fgColor="1f2937")
-HEADER_FONT = Font(color="FFFFFF", bold=True)
-RISK_FILLS = {
-    "Critical": PatternFill("solid", fgColor="FEE2E2"),
-    "High": PatternFill("solid", fgColor="FFEDD5"),
-    "Medium": PatternFill("solid", fgColor="FEF3C7"),
-    "Low": PatternFill("solid", fgColor="DCFCE7"),
+# Header styling colors are applied lazily inside _format_workbook so that
+# importing this module never requires pandas/openpyxl (keeps Vercel cold
+# starts and app import resilient even if heavy deps misbehave).
+_HEADER_FILL_COLOR = "1f2937"
+RISK_FILL_COLORS = {
+    "Critical": "FEE2E2",
+    "High": "FFEDD5",
+    "Medium": "FEF3C7",
+    "Low": "DCFCE7",
 }
 
 
@@ -127,12 +124,19 @@ def _mapping_rows(mappings):
 
 
 def _format_workbook(writer):
+    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.utils import get_column_letter
+
+    header_fill = PatternFill("solid", fgColor=_HEADER_FILL_COLOR)
+    header_font = Font(color="FFFFFF", bold=True)
+    risk_fills = {k: PatternFill("solid", fgColor=v) for k, v in RISK_FILL_COLORS.items()}
+
     workbook = writer.book
     for worksheet in workbook.worksheets:
         worksheet.freeze_panes = "A2"
         for cell in worksheet[1]:
-            cell.fill = HEADER_FILL
-            cell.font = HEADER_FONT
+            cell.fill = header_fill
+            cell.font = header_font
             cell.alignment = Alignment(horizontal="center")
         for column_cells in worksheet.columns:
             width = min(max(len(str(cell.value or "")) for cell in column_cells) + 2, 55)
@@ -141,12 +145,14 @@ def _format_workbook(writer):
             for row in worksheet.iter_rows(min_row=2):
                 values = {worksheet.cell(row=1, column=cell.column).value: cell for cell in row}
                 risk_cell = values.get("Risk Rating")
-                if risk_cell and risk_cell.value in RISK_FILLS:
+                if risk_cell and risk_cell.value in risk_fills:
                     for cell in row:
-                        cell.fill = RISK_FILLS[risk_cell.value]
+                        cell.fill = risk_fills[risk_cell.value]
 
 
 def export_workbook(filename="SAFEGUARD_Report.xlsx", system=None):
+    import pandas as pd
+
     EXPORT_DIR.mkdir(parents=True, exist_ok=True)
     path = EXPORT_DIR / filename
     systems = [system] if system else System.query.order_by(System.system_name).all()
@@ -191,6 +197,9 @@ def export_workbook(filename="SAFEGUARD_Report.xlsx", system=None):
 
 
 def export_systems_csv(systems, filename="systems_filtered.csv"):
+    import pandas as pd
+
+    EXPORT_DIR.mkdir(parents=True, exist_ok=True)
     path = EXPORT_DIR / filename
     pd.DataFrame(_system_rows(systems)).to_csv(path, index=False)
     return path
