@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block page_title %}Consolidated Risk Register{% endblock %}
+{% block content %}
+
+<div class="button-row" style="margin-bottom: 4px;">
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('risk_register', export='csv') }}"><i class="bi bi-download"></i> Export CSV</a>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('observations') }}"><i class="bi bi-list-ul"></i> Observations</a>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('remediation') }}"><i class="bi bi-tools"></i> Remediation</a>
+</div>
+
+<section class="panel">
+  <div class="panel-title"><span>All Risks</span></div>
+  <div class="table-wrap">
+    <table class="table searchable">
+      <thead>
+        <tr>
+          <th>Risk Theme</th><th>Severity</th><th>Score / Rating</th>
+          <th>Affected System</th><th>Owner</th><th>Status</th><th>Target</th><th>Days Overdue</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obs in observations %}
+        {% set rem = obs.remediation %}
+        <tr class="{% if rem and flag_overdue_remediation(rem) %}row-overdue{% endif %}">
+          <td><span class="chip">{{ obs.risk_theme }}</span><small>{{ obs.observation_title }}</small></td>
+          <td><span class="badge risk-{{ obs.severity|lower }}">{{ obs.severity }}</span></td>
+          <td><span class="badge risk-{{ assign_risk_rating(obs.risk_score)|lower }}">{{ obs.risk_score }} · {{ assign_risk_rating(obs.risk_score) }}</span></td>
+          <td>{{ obs.system.system_name }}</td>
+          <td>{{ obs.owner }}</td>
+          <td>
+            <span class="status-pill">{{ obs.observation_status }}</span>
+            {% if rem %}<small>Remediation: {{ rem.status }}</small>{% endif %}
+          </td>
+          <td>{{ rem.target_date if rem else obs.due_date or '—' }}</td>
+          <td>{% if rem and flag_overdue_remediation(rem) %}<strong style="color: var(--critical);">{{ days_between(rem.target_date) }}d</strong>{% else %}—{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8"><p class="empty">No risks recorded yet.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

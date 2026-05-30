@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block page_title %}Observations & Findings{% endblock %}
+{% block content %}
+
+<section class="two-col">
+  <div class="panel">
+    <div class="panel-title"><span>5×5 Risk Matrix</span><a href="{{ url_for('risk_register') }}">Risk register</a></div>
+    <div class="risk-matrix">
+      {% for impact in [5,4,3,2,1] %}
+        {% for likelihood in [1,2,3,4,5] %}
+          {% set score = likelihood * impact %}
+          <div class="risk-cell risk-{{ assign_risk_rating(score)|lower }}">
+            <span>{{ matrix[(likelihood, impact)] }}</span>
+            <small>L{{ likelihood }} · I{{ impact }}</small>
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><span>Risk Rating Rules</span></div>
+    <p style="color: var(--muted); margin-bottom: 12px;">Risk score equals likelihood × impact. Each cell shows the count of open findings at that intersection.</p>
+    <div style="display: grid; gap: 8px;">
+      <div class="flag-item"><span class="badge risk-low">Low</span><div><strong>1 – 4</strong><small>Track. No action required.</small></div></div>
+      <div class="flag-item"><span class="badge risk-medium">Medium</span><div><strong>5 – 9</strong><small>Plan remediation in next review cycle.</small></div></div>
+      <div class="flag-item"><span class="badge risk-high">High</span><div><strong>10 – 16</strong><small>Active remediation with target date.</small></div></div>
+      <div class="flag-item"><span class="badge risk-critical">Critical</span><div><strong>17 – 25</strong><small>Escalate. Management awareness required.</small></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-title"><span>All Observations</span></div>
+  <div class="table-wrap">
+    <table class="table searchable">
+      <thead>
+        <tr>
+          <th>Title</th><th>System</th><th>Theme</th><th>Score</th>
+          <th>Impact</th><th>Recommended Action</th><th>Owner</th><th>Due</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obs in observations %}
+        <tr>
+          <td><strong>{{ obs.observation_title }}</strong><small>{{ obs.observation_description }}</small></td>
+          <td>{{ obs.system.system_name }}</td>
+          <td><span class="chip">{{ obs.risk_theme }}</span></td>
+          <td><span class="badge risk-{{ assign_risk_rating(obs.risk_score)|lower }}">{{ obs.risk_score }} · {{ assign_risk_rating(obs.risk_score) }}</span></td>
+          <td>{{ obs.business_impact }}<small>{{ obs.compliance_impact }}</small></td>
+          <td>{{ obs.recommended_action }}</td>
+          <td>{{ obs.owner }}</td>
+          <td>{{ obs.due_date or '—' }}</td>
+          <td><span class="status-pill">{{ obs.observation_status }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9"><p class="empty">No observations yet.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

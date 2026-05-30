@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block page_title %}Evidence Repository{% endblock %}
+{% block content %}
+
+<section class="three-col stat-panels">
+  {% for label, value in buckets.items() %}
+    <div class="panel">
+      <span>{{ label|title }}</span>
+      <strong>{{ value }}</strong>
+    </div>
+  {% endfor %}
+</section>
+
+<section class="panel">
+  <div class="panel-title"><span>Evidence Review</span><a href="{{ url_for('import_page') }}">Import CSV</a></div>
+  <div class="table-wrap">
+    <table class="table searchable">
+      <thead>
+        <tr>
+          <th>Evidence</th><th>Status</th><th>System / Control</th><th>Owner</th>
+          <th>Collected</th><th>Expires</th><th>Source</th><th>Request Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in evidence %}
+        <tr>
+          <td><strong>{{ item.evidence_type }}</strong><small>{{ item.evidence_name }}</small></td>
+          <td><span class="status-pill evidence-{{ item.evidence_status|lower|replace(' ','-') }}">{{ item.evidence_status }}</span></td>
+          <td>{{ item.system.system_name }}<small>{{ item.control.control_name if item.control else 'Unmapped' }}</small></td>
+          <td>{{ item.evidence_owner }}</td>
+          <td>{{ item.date_collected or '—' }}</td>
+          <td>{{ item.expiration_date or '—' }}</td>
+          <td><small>{{ item.evidence_source }}</small></td>
+          <td>
+            <form method="post" class="inline-form">
+              <input type="hidden" name="evidence_id" value="{{ item.evidence_id }}">
+              <input class="form-control form-control-sm" name="request_note" value="{{ item.request_note or '' }}" placeholder="Evidence request">
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8"><p class="empty">No evidence records yet.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-title"><span>Printable Evidence Request List</span></div>
+  <ul class="request-list">
+    {% for item in request_list %}
+      <li><strong>{{ item.system.system_name }}</strong> — {{ item.evidence_name }}: {{ item.request_note or 'Request current evidence from owner.' }}</li>
+    {% else %}
+      <li><p class="empty">No outstanding evidence requests. </p></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

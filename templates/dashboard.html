@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block page_title %}Security Assessment Dashboard{% endblock %}
+{% block content %}
+
+{# Hero row: gauge + 4 hero KPIs #}
+<section class="dash-hero">
+  <div class="hero-card gauge-card">
+    {% set score_class = 'gauge-good' if metrics.readiness_score >= 80 else 'gauge-warn' if metrics.readiness_score >= 60 else 'gauge-bad' %}
+    <div class="gauge-meta">
+      <span class="section-label">Assessment Readiness</span>
+      <h2>Overall control posture</h2>
+      <p>Weighted blend of control implementation, evidence health, open risks, and overdue remediation.</p>
+      <div class="button-row" style="margin-top: 6px;">
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('risk_register') }}">
+          <i class="bi bi-arrow-up-right"></i> Risk register
+        </a>
+      </div>
+    </div>
+    <div class="gauge {{ score_class }}" style="--pct: {{ metrics.readiness_score }};" aria-label="Readiness score">
+      <div class="gauge-value">
+        {{ metrics.readiness_score }}<small>/100</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-kpis">
+    <div class="kpi-card accent">
+      <span class="kpi-icon"><i class="bi bi-hdd-network-fill"></i></span>
+      <span class="kpi-label">Systems reviewed</span>
+      <span class="kpi-value">{{ metrics.total_systems }}</span>
+    </div>
+    <div class="kpi-card dark">
+      <span class="kpi-icon"><i class="bi bi-exclamation-diamond-fill"></i></span>
+      <span class="kpi-label">Open observations</span>
+      <span class="kpi-value">{{ metrics.open_observations }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-icon"><i class="bi bi-fire"></i></span>
+      <span class="kpi-label">High / Critical</span>
+      <span class="kpi-value">{{ metrics.high_critical_observations }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-icon"><i class="bi bi-calendar-x"></i></span>
+      <span class="kpi-label">Overdue remediation</span>
+      <span class="kpi-value">{{ metrics.overdue_remediations }}</span>
+    </div>
+  </div>
+</section>
+
+{# Secondary KPI strip #}
+<section class="kpi-strip">
+  {% for label, value, icon in [
+    ('Controls reviewed', metrics.controls_reviewed, 'bi-list-check'),
+    ('Implemented', metrics.controls_implemented, 'bi-check2-circle'),
+    ('Partially', metrics.partially_implemented, 'bi-circle-half'),
+    ('Not implemented', metrics.not_implemented, 'bi-x-circle'),
+    ('Missing evidence', metrics.missing_evidence, 'bi-file-earmark-x'),
+    ('Outdated evidence', metrics.outdated_evidence, 'bi-hourglass-split'),
+    ('Pending evidence', metrics.systems_pending_evidence, 'bi-folder-x'),
+    ('Restricted data', metrics.restricted_data_systems, 'bi-lock-fill'),
+    ('PHI / Payment', metrics.phi_payment_systems, 'bi-heart-pulse-fill'),
+    ('Cloud systems', metrics.cloud_systems_reviewed, 'bi-cloud-fill'),
+    ('Frameworks', 8, 'bi-diagram-3-fill'),
+    ('Domains', 12, 'bi-grid-3x3-gap-fill'),
+  ] %}
+  <div class="kpi-card">
+    <span class="kpi-icon"><i class="bi {{ icon }}"></i></span>
+    <span class="kpi-label">{{ label }}</span>
+    <span class="kpi-value" style="font-size: 24px;">{{ value }}</span>
+  </div>
+  {% endfor %}
+</section>
+
+{# Chart panels #}
+<section class="two-col">
+  <div class="panel">
+    <div class="panel-title"><span>Control Health</span><a href="{{ url_for('controls') }}">View controls</a></div>
+    <canvas data-chart='{"type":"doughnut","palette":"status","labels":{{ charts.controlStatus.keys()|list|tojson }},"values":{{ charts.controlStatus.values()|list|tojson }}}'></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><span>Evidence Health</span><a href="{{ url_for('evidence') }}">View evidence</a></div>
+    <canvas data-chart='{"type":"bar","palette":"evidence","labels":{{ charts.evidenceStatus.keys()|list|tojson }},"values":{{ charts.evidenceStatus.values()|list|tojson }}}'></canvas>
+  </div>
+</section>
+
+<section class="three-col">
+  <div class="panel">
+    <div class="panel-title"><span>Risk Themes</span></div>
+    <canvas data-chart='{"type":"bar","palette":"risk","labels":{{ charts.riskThemes.keys()|list|tojson }},"values":{{ charts.riskThemes.values()|list|tojson }}}'></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><span>Remediation Pipeline</span><a href="{{ url_for('remediation') }}">Tracker</a></div>
+    <canvas data-chart='{"type":"doughnut","palette":"pipeline","labels":{{ charts.remediationStatus.keys()|list|tojson }},"values":{{ charts.remediationStatus.values()|list|tojson }}}'></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><span>Cloud Coverage</span></div>
+    <canvas data-chart='{"type":"bar","palette":"cloud","labels":{{ charts.cloudProviders.keys()|list|tojson }},"values":{{ charts.cloudProviders.values()|list|tojson }}}'></canvas>
+  </div>
+</section>
+
+{# Bottom row: top risks + upcoming reviews #}
+<section class="two-col">
+  <div class="panel">
+    <div class="panel-title"><span>Top Risks</span><a href="{{ url_for('risk_register') }}">Risk register</a></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Risk</th><th>System</th><th>Rating</th><th>Owner</th></tr></thead>
+        <tbody>
+          {% for risk in top_risks %}
+          <tr>
+            <td><strong>{{ risk.observation_title }}</strong><small>{{ risk.risk_theme }}</small></td>
+            <td>{{ risk.system.system_name }}</td>
+            <td><span class="badge risk-{{ assign_risk_rating(risk.risk_score)|lower }}">{{ assign_risk_rating(risk.risk_score) }}</span></td>
+            <td>{{ risk.owner }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4"><p class="empty">No open high-risk observations.</p></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><span>Upcoming Reviews</span></div>
+    <ul class="due-list">
+      {% for system in reviews_due %}
+        <li>
+          <i class="bi bi-calendar-event"></i>
+          <span><strong>{{ system.system_name }}</strong><br><small style="color: var(--muted);">System review</small></span>
+          <strong>{{ system.next_review_date }}</strong>
+        </li>
+      {% endfor %}
+      {% for control in tests_due %}
+        <li>
+          <i class="bi bi-check2-square"></i>
+          <span><strong>{{ control.control_name }}</strong><br><small style="color: var(--muted);">Control retest</small></span>
+          <strong>{{ control.next_test_date }}</strong>
+        </li>
+      {% endfor %}
+      {% if not reviews_due and not tests_due %}
+        <li><p class="empty">Nothing due in the next 30 days.</p></li>
+      {% endif %}
+    </ul>
+  </div>
+</section>
+{% endblock %}

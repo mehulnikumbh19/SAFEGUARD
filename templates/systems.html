@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block page_title %}System Inventory{% endblock %}
+{% block content %}
+
+<form class="filter-bar" method="get">
+  <input class="form-control" name="q" placeholder="Search systems, owners, data types" value="{{ filters.q }}">
+  {% for field, options in {
+    'environment':['','Production','Staging','Development','Test'],
+    'cloud_provider':['','AWS','Azure','GCP','SaaS','On-Prem'],
+    'criticality':['','Critical','High','Medium','Low'],
+    'data_classification':['','Public','Internal','Confidential','Restricted'],
+    'assessment_status':['','Not Started','In Review','Pending Evidence','Gap Identified','Remediation In Progress','Reviewed','Closed']
+  }.items() %}
+  <select class="form-select" name="{{ field }}">
+    {% for option in options %}
+      <option value="{{ option }}" {% if filters[field] == option %}selected{% endif %}>{{ option or field.replace('_',' ')|title }}</option>
+    {% endfor %}
+  </select>
+  {% endfor %}
+  <select class="form-select" name="sensitive_data_involved">
+    <option value="">Sensitive data</option>
+    <option value="true" {% if filters.sensitive_data_involved == 'true' %}selected{% endif %}>Yes</option>
+    <option value="false" {% if filters.sensitive_data_involved == 'false' %}selected{% endif %}>No</option>
+  </select>
+  <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel-fill"></i> Filter</button>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('systems') }}?{{ request.query_string.decode() }}&export=csv"><i class="bi bi-download"></i> CSV</a>
+</form>
+
+<div class="panel">
+  <div class="panel-title">
+    <span>{{ systems|length }} system{{ '' if systems|length == 1 else 's' }}</span>
+    <a href="#">All systems</a>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>System</th><th>Owner</th><th>Environment</th><th>Data</th>
+          <th>Cloud</th><th>Criticality</th><th>Status</th><th>Last</th><th>Next</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for system in systems %}
+        <tr>
+          <td><strong>{{ system.system_name }}</strong><small>{{ system.system_type }}</small></td>
+          <td>{{ system.business_owner }}<small>{{ system.technical_owner }}</small></td>
+          <td><span class="chip">{{ system.environment }}</span></td>
+          <td><span class="chip">{{ system.data_classification }}</span><small>{{ system.data_types }}</small></td>
+          <td>{{ system.cloud_provider }}<small>{{ system.aws_service_type }}</small></td>
+          <td><span class="badge risk-{{ system.criticality|lower }}">{{ system.criticality }}</span></td>
+          <td><span class="status-pill">{{ system.assessment_status }}</span></td>
+          <td>{{ system.last_reviewed_date or '—' }}</td>
+          <td>{{ system.next_review_date or '—' }}</td>
+          <td><a class="btn btn-ghost btn-sm" href="{{ url_for('system_detail', system_id=system.system_id) }}">Open <i class="bi bi-arrow-right"></i></a></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="10"><p class="empty">No systems match your filters.</p></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

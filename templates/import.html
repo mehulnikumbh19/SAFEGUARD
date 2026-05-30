@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block page_title %}CSV Import{% endblock %}
+{% block content %}
+
+<section class="panel">
+  <div class="panel-title"><span>Import Data</span></div>
+  <form method="post" enctype="multipart/form-data" class="import-form">
+    <select class="form-select" name="kind">
+      {% for kind in templates.keys() %}
+        <option value="{{ kind }}">{{ kind.replace('_',' ')|title }}</option>
+      {% endfor %}
+    </select>
+    <input class="form-control" type="file" name="file" accept=".csv">
+    <input type="hidden" name="commit" value="1">
+    <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-upload"></i> Validate &amp; Import</button>
+  </form>
+
+  <div class="template-links">
+    {% for kind in templates.keys() %}
+      {% set filename = 'policy_mapping_template.csv' if kind == 'policy_mappings' else kind ~ '_template.csv' %}
+      <a href="{{ url_for('sample_import', filename=filename) }}">
+        <i class="bi bi-filetype-csv"></i> {{ kind.replace('_',' ')|title }} Template
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+{% if result %}
+<section class="panel">
+  <div class="panel-title"><span>Import Summary</span></div>
+  <p style="color: var(--muted);">{{ result.valid|length }} rows valid · {{ result.errors|length }} rows rejected</p>
+  {% if result.errors %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Row</th><th>Errors</th></tr></thead>
+        <tbody>
+          {% for err in result.errors %}
+          <tr><td><strong>{{ err.row }}</strong></td><td><small>{{ err.errors|join('; ') }}</small></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

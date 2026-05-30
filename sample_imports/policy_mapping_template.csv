@@ -1,0 +1,2 @@
+control_name,framework,policy_reference,requirement_summary,mapped_control_objective,evidence_expectation,notes
+SSO and MFA Enforcement,SOC 2,SOC2-101,Paraphrased expectation for logical access safeguards.,Ensure workforce identities authenticate through SSO with MFA enforced.,Current SSO/MFA configuration and access review evidence.,Do not paste proprietary framework text.

@@ -1,0 +1,2 @@
+system_name,control_domain,control_name,control_objective,expected_implementation,implementation_status,control_owner,evidence_required,evidence_status,testing_method,assessor_notes,last_tested_date,next_test_date
+Example Production App,SSO/MFA,SSO and MFA Enforcement,Ensure workforce identities authenticate through SSO with MFA enforced.,SSO configured with MFA for normal and privileged users.,Implemented,Casey Engineer,true,Accepted,Configuration Review,Example control row.,2025-04-20,2025-06-20

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block page_title %}Activity Log{% endblock %}
+{% block content %}
+
+<form class="filter-bar" method="get">
+  <select class="form-select" name="entity_type">
+    <option value="">All entity types</option>
+    {% for entity in entity_types %}
+      <option value="{{ entity }}" {% if selected == entity %}selected{% endif %}>{{ entity }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel-fill"></i> Filter</button>
+</form>
+
+<section class="panel">
+  <div class="panel-title"><span>Recent Changes</span></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Time</th><th>Entity</th><th>Action</th><th>Field</th><th>Old</th><th>New</th><th>Actor</th></tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td><small>{{ log.timestamp }}</small></td>
+          <td><strong>{{ log.entity_type }}</strong><small>#{{ log.entity_id }}</small></td>
+          <td><span class="chip">{{ log.action }}</span></td>
+          <td>{{ log.field_changed or '—' }}</td>
+          <td><small>{{ log.old_value or '—' }}</small></td>
+          <td><small>{{ log.new_value or '—' }}</small></td>
+          <td>{{ log.actor }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7"><p class="empty">No activity yet.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

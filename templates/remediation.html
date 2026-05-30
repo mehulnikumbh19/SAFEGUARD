@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block page_title %}Remediation Tracker{% endblock %}
+{% block content %}
+
+<section class="two-col">
+  <div class="panel">
+    <div class="panel-title"><span>Burn-Down Status</span></div>
+    <canvas data-chart='{"type":"doughnut","palette":"pipeline","labels":{{ status_counts.keys()|list|tojson }},"values":{{ status_counts.values()|list|tojson }}}'></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><span>Tracker Rules</span></div>
+    <p style="color: var(--muted); margin-bottom: 16px;">Overdue items are based on a target date in the past and a status other than Closed. Days open uses the remediation created date.</p>
+    <div class="flag-item">
+      <span class="badge risk-critical">Overdue</span>
+      <div><strong>Past target date</strong><small>Highlighted in the table below.</small></div>
+    </div>
+    <div class="flag-item">
+      <span class="badge risk-high">High Priority</span>
+      <div><strong>Active focus</strong><small>Confirm owner has bandwidth.</small></div>
+    </div>
+    <div class="flag-item">
+      <span class="badge risk-medium">Pending</span>
+      <div><strong>Awaiting validation</strong><small>Validate against closure evidence.</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-title"><span>Remediation Items</span></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Observation</th><th>Owner</th><th>Action Plan</th><th>Priority</th>
+          <th>Target</th><th>Status</th><th>SLA / Aging</th><th>Validation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in remediations %}
+        <tr class="{% if flag_overdue_remediation(item) %}row-overdue{% endif %}">
+          <td><strong>{{ item.observation.observation_title }}</strong><small>{{ item.system.system_name }}</small></td>
+          <td>{{ item.remediation_owner }}</td>
+          <td><small>{{ item.action_plan }}</small></td>
+          <td><span class="badge risk-{{ item.priority|lower }}">{{ item.priority }}</span></td>
+          <td>{{ item.target_date or '—' }}</td>
+          <td>
+            <form method="post" class="inline-form">
+              <input type="hidden" name="remediation_id" value="{{ item.remediation_id }}">
+              <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
+                {% for status in ['Open','In Progress','Pending Validation','Blocked','Risk Accepted','Closed'] %}
+                  <option value="{{ status }}" {% if item.status == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          </td>
+          <td>
+            <strong>{{ days_between(item.created_at.date()) }}d open</strong>
+            {% if flag_overdue_remediation(item) %}
+              <small style="color: var(--critical);">{{ days_between(item.target_date) }}d overdue</small>
+            {% endif %}
+          </td>
+          <td><small>{{ item.validation_method }}</small></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8"><p class="empty">No remediation items yet.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

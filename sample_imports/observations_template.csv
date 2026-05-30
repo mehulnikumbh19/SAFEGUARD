@@ -1,0 +1,2 @@
+system_name,control_name,observation_title,observation_description,risk_theme,severity,likelihood,impact,business_impact,compliance_impact,recommended_action,observation_status,owner,due_date,closure_evidence,closure_notes
+Example Production App,SSO and MFA Enforcement,MFA exception lacks approval,Exception list does not show owner approval.,Missing MFA,Medium,3,3,Unauthorized exception could persist.,Access governance evidence is incomplete.,Approve or remove exception.,Open,Casey Engineer,2025-06-01,,

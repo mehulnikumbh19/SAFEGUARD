@@ -1,0 +1,2 @@
+system_name,control_name,evidence_name,evidence_type,evidence_description,evidence_source,evidence_owner,collection_method,evidence_status,date_collected,expiration_date,file_path_or_link,review_notes,request_note
+Example Production App,SSO and MFA Enforcement,MFA policy screenshot,MFA Policy,Screenshot showing MFA enforcement.,Identity provider,Casey Engineer,Screenshot Review,Available,2025-04-21,2025-10-21,evidence/example/mfa.png,Reviewed by assessor.,

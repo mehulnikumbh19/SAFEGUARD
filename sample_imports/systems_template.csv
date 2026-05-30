@@ -1,0 +1,2 @@
+system_name,business_owner,technical_owner,environment,system_type,data_classification,sensitive_data_involved,data_types,cloud_provider,aws_service_type,internet_facing,criticality,assessment_status,last_reviewed_date,next_review_date,notes
+Example Production App,Alex Owner,Casey Engineer,Production,Web Application,Confidential,true,"PII, Customer Data",AWS,EC2,true,High,In Review,2025-04-15,2025-06-15,Example system import row.

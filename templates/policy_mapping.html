@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block page_title %}Policy Mapping{% endblock %}
+{% block content %}
+
+<section class="panel">
+  <div class="panel-title">
+    <span>Framework Mappings</span>
+    <a href="{{ url_for('coverage') }}">Coverage heatmap</a>
+  </div>
+  <div class="table-wrap">
+    <table class="table searchable">
+      <thead>
+        <tr>
+          <th>Control</th><th>Framework</th><th>Policy Ref</th>
+          <th>Requirement Summary</th><th>Mapped Objective</th><th>Evidence Expectation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mapping in mappings %}
+        <tr>
+          <td><strong>{{ mapping.control.control_name }}</strong><small>{{ mapping.control.control_domain }}</small></td>
+          <td><span class="chip">{{ mapping.framework }}</span></td>
+          <td>{{ mapping.policy_reference }}</td>
+          <td><small>{{ mapping.requirement_summary }}</small></td>
+          <td><small>{{ mapping.mapped_control_objective }}</small></td>
+          <td><small>{{ mapping.evidence_expectation }}</small></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6"><p class="empty">No policy mappings yet.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

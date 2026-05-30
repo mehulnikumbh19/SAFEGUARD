@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block page_title %}Management Reports{% endblock %}
+{% block content %}
+
+<section class="dash-hero">
+  <div class="hero-card gauge-card">
+    {% set score_class = 'gauge-good' if score >= 80 else 'gauge-warn' if score >= 60 else 'gauge-bad' %}
+    <div class="gauge-meta">
+      <span class="section-label">Current Readiness</span>
+      <h2>Management-ready summary</h2>
+      <p>Export a complete review package for leadership in Excel or Markdown.</p>
+      <div class="button-row" style="margin-top: 4px;">
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('export_report', kind='markdown') }}"><i class="bi bi-filetype-md"></i> Markdown</a>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('export_report', kind='excel') }}"><i class="bi bi-file-earmark-spreadsheet"></i> Excel Workbook</a>
+      </div>
+    </div>
+    <div class="gauge {{ score_class }}" style="--pct: {{ score }};" aria-label="Readiness">
+      <div class="gauge-value">{{ score }}<small>/100</small></div>
+    </div>
+  </div>
+
+  <div class="hero-kpis">
+    <div class="kpi-card"><span class="kpi-icon"><i class="bi bi-hdd-network-fill"></i></span><span class="kpi-label">Systems</span><span class="kpi-value">{{ systems|length }}</span></div>
+    <div class="kpi-card"><span class="kpi-icon"><i class="bi bi-list-check"></i></span><span class="kpi-label">Controls</span><span class="kpi-value">{{ controls|length }}</span></div>
+    <div class="kpi-card"><span class="kpi-icon"><i class="bi bi-folder2-open"></i></span><span class="kpi-label">Evidence</span><span class="kpi-value">{{ evidence|length }}</span></div>
+    <div class="kpi-card"><span class="kpi-icon"><i class="bi bi-exclamation-diamond-fill"></i></span><span class="kpi-label">Findings</span><span class="kpi-value">{{ observations|length }}</span></div>
+  </div>
+</section>
+
+<section class="panel report-copy">
+  <div class="panel-title"><span>Executive Summary</span></div>
+  <p>SAFEGUARD summarizes access, SSO/MFA, user permissions, encryption references, log evidence, configuration exports, and AWS-style service review notes — mapped to risk themes, remediation owners, evidence requests, and policy references — into a single management-ready package.</p>
+  <ul>
+    <li>Systems reviewed: <strong>{{ systems|length }}</strong></li>
+    <li>Technical controls assessed: <strong>{{ controls|length }}</strong></li>
+    <li>Evidence records tracked: <strong>{{ evidence|length }}</strong></li>
+    <li>Observations / findings: <strong>{{ observations|length }}</strong></li>
+    <li>Remediation items in flight: <strong>{{ remediations|length }}</strong></li>
+  </ul>
+</section>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block page_title %}Technical Controls{% endblock %}
+{% block content %}
+
+<form class="filter-bar" method="get">
+  <select class="form-select" name="system_id">
+    <option value="">All systems</option>
+    {% for s in systems %}
+      <option value="{{ s.system_id }}" {% if filters.system_id|string == s.system_id|string %}selected{% endif %}>{{ s.system_name }}</option>
+    {% endfor %}
+  </select>
+  {% for field, options in {
+      'control_domain':['','Access Control','SSO/MFA','User Permissions','Privileged Access','Encryption at Rest','Encryption in Transit','Logging and Monitoring','Cloud Configuration','Configuration Baseline','Change Management','Vulnerability Management','Secrets Management'],
+      'implementation_status':['','Implemented','Partially Implemented','Not Implemented','Not Applicable','Not Assessed'],
+      'evidence_status':['','Available','Missing','Incomplete','Outdated','Needs Review','Accepted']
+  }.items() %}
+  <select class="form-select" name="{{ field }}">
+    {% for option in options %}
+      <option value="{{ option }}" {% if filters[field] == option %}selected{% endif %}>{{ option or field.replace('_',' ')|title }}</option>
+    {% endfor %}
+  </select>
+  {% endfor %}
+  <input class="form-control" name="control_owner" placeholder="Owner exact match" value="{{ filters.control_owner }}">
+  <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel-fill"></i> Filter</button>
+</form>
+
+<div class="panel">
+  <div class="panel-title"><span>Domain Summary</span><a href="{{ url_for('coverage') }}">Coverage heatmap</a></div>
+  <div class="domain-bars">
+    {% for domain, statuses in summary.items() %}
+      <div><span>{{ domain }}</span><strong>{{ statuses.values()|sum }}</strong></div>
+    {% else %}
+      <p class="empty">No controls match.</p>
+    {% endfor %}
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Domain</th><th>Control Objective</th><th>Expected</th>
+          <th>Status</th><th>Evidence</th><th>Testing</th><th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for control in controls %}
+        <tr>
+          <td><span class="chip">{{ control.control_domain }}</span><small>{{ control.system.system_name }}</small></td>
+          <td><strong>{{ control.control_name }}</strong><small>{{ control.control_objective }}</small></td>
+          <td>{{ control.expected_implementation }}</td>
+          <td><span class="status-pill">{{ control.implementation_status }}</span></td>
+          <td><span class="status-pill evidence-{{ control.evidence_status|lower|replace(' ','-') }}">{{ control.evidence_status }}</span></td>
+          <td>{{ control.testing_method }}</td>
+          <td><small>{{ control.assessor_notes }}</small></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7"><p class="empty">No controls match your filters.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

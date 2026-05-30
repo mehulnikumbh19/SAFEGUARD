@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block page_title %}Page Not Found{% endblock %}
+{% block content %}
+<section class="panel" style="text-align: center; padding: 60px 24px;">
+  <div style="font-family: 'Space Grotesk', sans-serif; font-size: 72px; font-weight: 700; color: var(--accent); line-height: 1;">404</div>
+  <h2 style="margin-top: 12px; color: var(--text-strong);">Page not found</h2>
+  <p style="color: var(--muted); max-width: 480px; margin: 8px auto 22px;">
+    The route you requested isn't part of SAFEGUARD. Head back to the dashboard to continue your assessment.
+  </p>
+  <a class="btn btn-primary" href="{{ url_for('dashboard') }}"><i class="bi bi-arrow-left"></i> Return to dashboard</a>
+</section>
+{% endblock %}

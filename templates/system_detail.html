@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block page_title %}{{ system.system_name }}{% endblock %}
+{% block content %}
+
+<section class="dash-hero">
+  <div class="hero-card gauge-card">
+    {% set score_class = 'gauge-good' if score >= 80 else 'gauge-warn' if score >= 60 else 'gauge-bad' %}
+    <div class="gauge-meta">
+      <span class="section-label">System Readiness</span>
+      <h2>{{ system.system_name }}</h2>
+      <p>{{ system.system_type }} · {{ system.environment }} · {{ system.cloud_provider }}{% if system.aws_service_type %} ({{ system.aws_service_type }}){% endif %}</p>
+      <div class="button-row" style="margin-top: 4px;">
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('export_system_report', system_id=system.system_id, kind='markdown') }}"><i class="bi bi-filetype-md"></i> Markdown</a>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('export_system_report', system_id=system.system_id, kind='excel') }}"><i class="bi bi-file-earmark-spreadsheet"></i> Excel</a>
+      </div>
+    </div>
+    <div class="gauge {{ score_class }}" style="--pct: {{ score }};" aria-label="System readiness">
+      <div class="gauge-value">{{ score }}<small>/100</small></div>
+    </div>
+  </div>
+
+  <div class="hero-kpis">
+    <div class="kpi-card accent">
+      <span class="kpi-icon"><i class="bi bi-list-check"></i></span>
+      <span class="kpi-label">Controls</span>
+      <span class="kpi-value">{{ system.controls|length }}</span>
+    </div>
+    <div class="kpi-card dark">
+      <span class="kpi-icon"><i class="bi bi-folder2-open"></i></span>
+      <span class="kpi-label">Evidence</span>
+      <span class="kpi-value">{{ system.evidence|length }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-icon"><i class="bi bi-exclamation-diamond-fill"></i></span>
+      <span class="kpi-label">Open observations</span>
+      <span class="kpi-value">{{ system.observations|selectattr('observation_status','ne','Closed')|list|length }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-icon"><i class="bi bi-tools"></i></span>
+      <span class="kpi-label">Remediation</span>
+      <span class="kpi-value">{{ system.remediations|length }}</span>
+    </div>
+  </div>
+</section>
+
+<section class="two-col">
+  <div class="panel">
+    <div class="panel-title"><span>Security Assessment Profile</span></div>
+    <dl class="detail-grid">
+      <dt>Business owner</dt><dd>{{ system.business_owner }}</dd>
+      <dt>Technical owner</dt><dd>{{ system.technical_owner }}</dd>
+      <dt>Environment</dt><dd><span class="chip">{{ system.environment }}</span></dd>
+      <dt>Data classification</dt><dd><span class="chip">{{ system.data_classification }}</span></dd>
+      <dt>Data types</dt><dd>{{ system.data_types or '—' }}</dd>
+      <dt>Cloud / AWS</dt><dd>{{ system.cloud_provider }}{% if system.aws_service_type %} · {{ system.aws_service_type }}{% endif %}</dd>
+      <dt>Internet facing</dt><dd>{{ 'Yes' if system.internet_facing else 'No' }}</dd>
+      <dt>Criticality</dt><dd><span class="badge risk-{{ system.criticality|lower }}">{{ system.criticality }}</span></dd>
+      <dt>Assessment status</dt><dd><span class="status-pill">{{ system.assessment_status }}</span></dd>
+      <dt>Last reviewed</dt><dd>{{ system.last_reviewed_date or '—' }}</dd>
+      <dt>Next review</dt><dd>{{ system.next_review_date or '—' }}</dd>
+    </dl>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><span>Automation Flags</span></div>
+    {% if flags %}
+      {% for flag in flags %}
+        <div class="flag-item">
+          <span class="badge risk-{{ flag.severity|lower }}">{{ flag.severity }}</span>
+          <div>
+            <strong>{{ flag.rule }}</strong>
+            <small>{{ flag.detail }}</small>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty"><i class="bi bi-check-circle"></i> No automation flags are active for this system.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-title"><span>Open Observations & Remediation</span><a href="{{ url_for('observations') }}">All observations</a></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Finding</th><th>Theme</th><th>Rating</th><th>Owner</th><th>Due</th><th>Remediation</th></tr></thead>
+      <tbody>
+        {% for obs in system.observations %}
+        <tr>
+          <td><strong>{{ obs.observation_title }}</strong></td>
+          <td>{{ obs.risk_theme }}</td>
+          <td><span class="badge risk-{{ assign_risk_rating(obs.risk_score)|lower }}">{{ assign_risk_rating(obs.risk_score) }}</span></td>
+          <td>{{ obs.owner }}</td>
+          <td>{{ obs.due_date or '—' }}</td>
+          <td>{{ obs.remediation.status if obs.remediation else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6"><p class="empty">No observations yet for this system.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-title"><span>Policy Mappings</span><a href="{{ url_for('policy_mapping') }}">All mappings</a></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Framework</th><th>Control</th><th>Evidence Expectation</th></tr></thead>
+      <tbody>
+        {% for mapping in mappings %}
+        <tr><td><span class="chip">{{ mapping.framework }}</span></td><td>{{ mapping.control.control_name }}</td><td>{{ mapping.evidence_expectation }}</td></tr>
+        {% else %}
+        <tr><td colspan="3"><p class="empty">No policy mappings yet.</p></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
