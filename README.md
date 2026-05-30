@@ -39,43 +39,49 @@ Browser
   -> imports.py / exports.py / reports.py for CSV, Excel, and Markdown workflows
 ```
 
-## Deploy Online (Vercel — recommended)
+## Deploy Online (Render — recommended)
 
-SAFEGUARD uses [Vercel’s native Flask support](https://vercel.com/docs/frameworks/backend/flask). The entrypoint is `app:app` in `app.py`.
+Flask + SQLite + Gunicorn works reliably on [Render](https://render.com). The repo includes a `render.yaml` Blueprint.
 
-### Deploy from GitHub (dashboard)
+### Option A — Blueprint (fastest)
 
 1. Push the latest code to https://github.com/mehulnikumbh19/SAFEGUARD
-2. Sign in at https://vercel.com with GitHub.
-3. Click **Add New…** → **Project**.
-4. Import the **SAFEGUARD** repository.
-5. Leave defaults (Vercel detects Flask via `app.py` and `pyproject.toml`).
-6. Add an environment variable (recommended):
-   - `SECRET_KEY` = any long random string
-7. Click **Deploy** and wait for the build (~2–4 minutes).
-8. Open your production URL (for example `https://safeguard.vercel.app`).
+2. Sign in at https://dashboard.render.com with GitHub
+3. Click **New +** → **Blueprint**
+4. Connect the **SAFEGUARD** repository
+5. Render reads `render.yaml` and creates the `safeguard` web service
+6. Click **Apply** and wait ~3–5 minutes
+7. Open your live URL (for example `https://safeguard.onrender.com`)
 
-### Deploy with Vercel CLI
+### Option B — Manual web service
 
-```powershell
-cd safeguard
-npm i -g vercel
-vercel login
-vercel
-```
+1. **New +** → **Web Service** → connect **SAFEGUARD**
+2. Settings:
+   - **Runtime:** Python 3
+   - **Build command:** `pip install -r requirements.txt`
+   - **Start command:** `gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 app:app`
+   - **Health check path:** `/health`
+3. Add env var `SECRET_KEY` (or let Render generate one)
+4. Deploy
 
-Follow prompts to link the project. Use `vercel --prod` for production.
+### Hosted demo notes (Render free tier)
 
-### Hosted demo notes
+- First request after ~15 min idle can take **30–60 seconds** (service spins up)
+- SQLite lives in `data/safeguard.db` on the instance (resets on redeploy; seed data reloads automatically)
+- Health check: `GET /health` → `{"status":"ok","service":"SAFEGUARD","systems":10}`
 
-- **SQLite** runs in `/tmp` on Vercel (writable in serverless). Data is ephemeral across cold starts; sample seed data reloads automatically when the database is empty.
-- **Static assets** (CSS/JS) are served from `public/static/` via the CDN.
-- **Excel/Markdown exports** write to `/tmp` and download in the browser as usual.
-- **Health check:** `GET /health` returns `{"status": "ok", "service": "SAFEGUARD"}`.
+## Deploy Online (Railway — alternative)
 
-## Deploy Online (Render — alternative)
+[Railway](https://railway.app) also works with the included `railway.toml`.
 
-You can also deploy with [Render](https://render.com) using the included `render.yaml` Blueprint (see `render.yaml` in the repo).
+1. Sign in at https://railway.app with GitHub
+2. **New Project** → **Deploy from GitHub repo** → **SAFEGUARD**
+3. Railway auto-detects Python; confirm start command uses Gunicorn (see `railway.toml`)
+4. Deploy and open the generated URL
+
+## Deploy Online (Vercel — not recommended for this app)
+
+Vercel serverless is a poor fit for Flask + SQLite + pandas exports. Use Render or Railway instead. Vercel config remains in the repo if you want to experiment later.
 
 ## Screenshots
 

@@ -8,6 +8,7 @@ IS_VERCEL = os.environ.get("VERCEL") == "1" or os.environ.get("VERCEL_ENV") in {
     "preview",
     "development",
 }
+IS_RENDER = os.environ.get("RENDER") == "true"
 
 # Vercel serverless: only /tmp is writable; SQLite + exports go there.
 if IS_VERCEL:

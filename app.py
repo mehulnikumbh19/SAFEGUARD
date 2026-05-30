@@ -16,7 +16,7 @@ from calculations import (
     flag_overdue_remediation,
     get_system_flags,
 )
-from config import BASE_DIR, Config, PUBLIC_STATIC_DIR, SAMPLE_IMPORT_DIR, ensure_directories
+from config import BASE_DIR, Config, IS_RENDER, IS_VERCEL, PUBLIC_STATIC_DIR, SAMPLE_IMPORT_DIR, ensure_directories
 from database import db
 from exports import export_systems_csv, export_workbook
 from imports import TEMPLATES, commit_import, preview_import
@@ -51,17 +51,29 @@ def create_app():
     app.config.from_object(Config)
     db.init_app(app)
 
+    def _bootstrap_database():
+        db.create_all()
+        if not System.query.first():
+            seed_database()
+
     @app.before_request
     def _lazy_bootstrap():
         if getattr(app, "_bootstrap_done", False):
             return
         app._bootstrap_done = True
         try:
-            db.create_all()
-            if not System.query.first():
-                seed_database()
+            _bootstrap_database()
         except Exception:
             app.logger.exception("SAFEGUARD bootstrap (create_all/seed) failed")
+
+    # Render/Railway/local: seed at startup so first visitor gets a warm app.
+    if not IS_VERCEL:
+        with app.app_context():
+            try:
+                _bootstrap_database()
+                app._bootstrap_done = True
+            except Exception:
+                app.logger.exception("SAFEGUARD startup bootstrap failed")
 
     @app.route("/health")
     def health():

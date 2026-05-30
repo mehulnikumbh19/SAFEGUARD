@@ -1,13 +1,16 @@
 # Render Blueprint — https://render.com/docs/blueprint-spec
-# Connect repo: https://github.com/mehulnikumbh19/SAFEGUARD
+# Repo: https://github.com/mehulnikumbh19/SAFEGUARD
 services:
   - type: web
     name: safeguard
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app:app
+    region: oregon
+    branch: master
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 app:app
     healthCheckPath: /health
+    autoDeploy: true
     envVars:
       - key: SECRET_KEY
         generateValue: true
