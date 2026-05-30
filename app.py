@@ -39,19 +39,31 @@ def create_app():
     ensure_directories()
     app = Flask(
         __name__,
+        template_folder=str(BASE_DIR / "templates"),
         static_folder=str(PUBLIC_STATIC_DIR),
         static_url_path="/static",
     )
     app.config.from_object(Config)
     init_db(app)
 
-    with app.app_context():
-        if not System.query.first():
-            seed_database()
+    @app.before_request
+    def _lazy_seed():
+        if getattr(app, "_seed_attempted", False):
+            return
+        app._seed_attempted = True
+        try:
+            if not System.query.first():
+                seed_database()
+        except Exception:
+            app.logger.exception("SAFEGUARD seed failed on startup")
 
     @app.route("/health")
     def health():
-        return jsonify({"status": "ok", "service": "SAFEGUARD"})
+        try:
+            count = System.query.count()
+        except Exception:
+            count = None
+        return jsonify({"status": "ok", "service": "SAFEGUARD", "systems": count})
 
     @app.context_processor
     def inject_helpers():
