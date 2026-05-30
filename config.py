@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -9,8 +10,8 @@ DB_PATH = DATA_DIR / "safeguard.db"
 
 
 class Config:
-    SECRET_KEY = "dev-safeguard-local-key"
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{DB_PATH.as_posix()}"
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-safeguard-local-key-change-in-production")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", f"sqlite:///{DB_PATH.as_posix()}")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JSON_SORT_KEYS = False
 

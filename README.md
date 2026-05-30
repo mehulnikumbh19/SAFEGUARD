@@ -39,6 +39,26 @@ Browser
   -> imports.py / exports.py / reports.py for CSV, Excel, and Markdown workflows
 ```
 
+## Deploy Online (Render — free tier)
+
+SAFEGUARD is ready to host on [Render](https://render.com) from GitHub.
+
+1. Push the latest code to https://github.com/mehulnikumbh19/SAFEGUARD
+2. Sign in to Render with GitHub.
+3. Click **New +** → **Blueprint**.
+4. Connect the **SAFEGUARD** repository.
+5. Render reads `render.yaml` and creates the web service automatically.
+6. Wait for the build to finish (about 2–4 minutes).
+7. Open the live URL (for example `https://safeguard.onrender.com`).
+
+**Notes for hosted demo:**
+
+- The free tier uses an ephemeral disk; SQLite data may reset when the service redeploys or sleeps. Sample seed data reloads automatically on startup when the database is empty.
+- First request after sleep can take 30–60 seconds (cold start).
+- Set `SECRET_KEY` in Render if you redeploy without the blueprint (Render can auto-generate it via `render.yaml`).
+
+**Health check:** `GET /health` returns `{"status": "ok", "service": "SAFEGUARD"}`.
+
 ## Screenshots
 
 Add screenshots of the dashboard, risk register, evidence page, and Excel export here after running the app.

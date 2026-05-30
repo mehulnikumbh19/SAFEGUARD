@@ -1,7 +1,8 @@
+import os
 from datetime import date, timedelta
 from pathlib import Path
 
-from flask import Flask, flash, redirect, render_template, request, send_file, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, send_file, url_for
 
 from calculations import (
     assign_risk_rating,
@@ -39,6 +40,14 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     init_db(app)
+
+    with app.app_context():
+        if not System.query.first():
+            seed_database()
+
+    @app.route("/health")
+    def health():
+        return jsonify({"status": "ok", "service": "SAFEGUARD"})
 
     @app.context_processor
     def inject_helpers():
@@ -287,7 +296,6 @@ app = create_app()
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        if not System.query.first():
-            seed_database()
-    app.run(debug=True)
+    debug = os.environ.get("FLASK_DEBUG", "1") == "1"
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=debug)
