@@ -3,5 +3,14 @@ name = "safeguard"
 version = "1.0.0"
 description = "Security control review workbench for access, logging, and cloud assessments"
 requires-python = ">=3.12"
+dependencies = [
+    "Flask==3.0.3",
+    "Flask-SQLAlchemy==3.1.1",
+    "SQLAlchemy==2.0.30",
+    "numpy==1.26.4",
+    "pandas==2.2.2",
+    "openpyxl==3.1.2",
+]
 
-# Vercel auto-detects Flask from app.py; no custom entrypoint required.
+[tool.vercel]
+# Vercel auto-detects Flask from app.py; entrypoint optional.
